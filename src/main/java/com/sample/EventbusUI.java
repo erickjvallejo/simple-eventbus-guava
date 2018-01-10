@@ -5,31 +5,38 @@ import com.google.common.eventbus.Subscribe;
 import com.vaadin.annotations.Title;
 import com.vaadin.server.VaadinRequest;
 import com.vaadin.spring.annotation.SpringUI;
+import com.vaadin.ui.Button;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.UI;
+import javax.annotation.PreDestroy;
 
 @SpringUI
-@Title("Mi Titulo")
-public class DemoUI extends UI {
+@Title("Mi Eventbus with Guava")
+public class EventbusUI extends UI {
 
-    //My Google Event Bus
+    //My Guava Eventbus
     private EventBus eventBus;
+
+    @Override
+    protected void init(VaadinRequest request) {
+        //Creating my BusEvent
+        setupEventBus();
+
+        Button button = new Button("Logout");
+        button.addClickListener((event) -> {
+
+            this.eventBus.post(new LogoutEvent());
+        });
+
+        setContent(button);
+
+    }
 
     //My registered event 
     @Subscribe
     public void logout(LogoutEvent logoutEvent) {
 
-        Notification.show("Closing session from EventBus", Notification.Type.ERROR_MESSAGE);
-    }
-
-    @Override
-    protected void init(VaadinRequest request) {
-        //Creating my BusEvent
-        setupEventBus(); 
-        
-        //Calling my form
-        setContent(new MyForm());
-
+        Notification.show("Closing session from Guava EventBus", Notification.Type.ERROR_MESSAGE);
     }
 
     private void setupEventBus() {
@@ -39,12 +46,9 @@ public class DemoUI extends UI {
         eventBus.register(this);
     }
 
-    public static DemoUI getCurrent() {
-        return (DemoUI) UI.getCurrent();
-    }
-    
-    public static EventBus getEventBus() {
-        return getCurrent().eventBus;
+    @PreDestroy
+    public void destroy() {
+        eventBus.unregister(this);
     }
 
 }
